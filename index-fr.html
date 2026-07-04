@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mes Missions — Famille</title>
+<style>
+  :root{
+    --bg:#0f1424; --panel:#1a2238; --panel2:#222c47;
+    --txt:#eef2ff; --muted:#93a0c4; --gold:#ffd35c; --green:#3ad07a; --red:#ff6b6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:radial-gradient(1100px 650px at 50% -8%, #1c2748, #0f1424 62%);
+    color:var(--txt);overflow:hidden;user-select:none;
+  }
+  #app{height:100vh;display:flex;flex-direction:column;}
+
+  /* ---- barre du haut ---- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;background:linear-gradient(180deg,#182036,#12192c);
+    box-shadow:0 4px 18px rgba(0,0,0,.35);z-index:5;
+  }
+  .topbar h1{font-size:26px;font-weight:800;letter-spacing:.5px;}
+  .topbar .date{color:var(--muted);font-size:16px;margin-top:2px;}
+  .topbar-left{display:flex;align-items:center;gap:16px;}
+  .back{
+    font-size:26px;background:var(--panel2);border:none;color:var(--txt);
+    width:56px;height:56px;border-radius:16px;cursor:pointer;display:none;
+  }
+  .gear{
+    font-size:26px;background:var(--panel2);border:none;color:var(--txt);
+    width:56px;height:56px;border-radius:16px;cursor:pointer;
+  }
+  .fri-badge{
+    background:linear-gradient(90deg,#ffb43c,#ff7b7b);color:#2a1500;font-weight:800;
+    padding:8px 16px;border-radius:999px;font-size:15px;
+  }
+
+  .screen{flex:1;overflow-y:auto;padding:30px;}
+
+  /* ---- accueil : cartes enfants ---- */
+  .kids-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:1100px;margin:0 auto;}
+  .kid-card{
+    position:relative;border-radius:26px;padding:26px;cursor:pointer;
+    background:var(--panel);border:2px solid rgba(255,255,255,.05);
+    display:flex;align-items:center;gap:22px;transition:transform .12s;
+    overflow:hidden;
+  }
+  .kid-card:active{transform:scale(.98);}
+  .kid-card .glow{position:absolute;inset:0;opacity:.14;}
+  .kid-emoji{font-size:74px;line-height:1;flex-shrink:0;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4));}
+  .kid-info{flex:1;z-index:1;}
+  .kid-name{font-size:30px;font-weight:800;}
+  .kid-sub{color:var(--muted);font-size:15px;margin-top:2px;}
+  .kid-stats{display:flex;gap:18px;margin-top:14px;}
+  .stat{background:rgba(0,0,0,.25);border-radius:14px;padding:10px 16px;text-align:center;min-width:96px;}
+  .stat b{display:block;font-size:24px;}
+  .stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .progress{height:12px;background:rgba(0,0,0,.3);border-radius:999px;margin-top:16px;overflow:hidden;}
+  .progress > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#3ad07a,#8ef0b0);}
+
+  /* ---- vue enfant : missions ---- */
+  .kid-header{
+    display:flex;align-items:center;gap:20px;max-width:1100px;margin:0 auto 24px;
+    background:var(--panel);border-radius:22px;padding:20px 26px;
+  }
+  .kid-header .kid-emoji{font-size:60px;}
+  .kid-header .hname{font-size:30px;font-weight:800;}
+  .kid-header .hstats{margin-left:auto;display:flex;gap:14px;}
+  .pill{background:var(--panel2);border-radius:16px;padding:12px 20px;text-align:center;}
+  .pill b{display:block;font-size:26px;color:var(--gold);}
+  .pill.mins b{color:#7fd4ff;}
+  .pill span{font-size:12px;color:var(--muted);}
+
+  .tasks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px;max-width:1100px;margin:0 auto;}
+  .task{
+    position:relative;background:var(--panel);border-radius:22px;padding:22px 18px;
+    text-align:center;cursor:pointer;border:3px solid transparent;transition:transform .1s;
+    min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  }
+  .task:active{transform:scale(.96);}
+  .task .t-emoji{font-size:60px;line-height:1;transition:transform .2s;}
+  .task .t-label{font-size:19px;font-weight:700;line-height:1.15;}
+  .task .t-pts{color:var(--gold);font-weight:800;font-size:16px;}
+  .task.done{background:linear-gradient(160deg,#123a24,#0f2f1e);border-color:var(--green);}
+  .task.done .t-emoji{transform:scale(.85);}
+  .task .check{
+    position:absolute;top:12px;right:12px;width:42px;height:42px;border-radius:50%;
+    background:var(--green);color:#06230f;font-size:26px;font-weight:900;
+    display:none;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.4);
+  }
+  .task.done .check{display:flex;}
+
+  .empty{color:var(--muted);text-align:center;margin-top:60px;font-size:18px;}
+
+  /* ---- modale parents ---- */
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(4,7,16,.82);z-index:50;
+    display:none;align-items:center;justify-content:center;padding:24px;
+  }
+  .modal-bg.open{display:flex;}
+  .modal{
+    background:var(--panel);border-radius:24px;padding:30px;width:min(880px,96vw);
+    max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);
+  }
+  .modal h2{font-size:24px;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+  .pin-row{display:flex;gap:12px;justify-content:center;margin:20px 0;}
+  .pin-dot{width:20px;height:20px;border-radius:50%;background:var(--panel2);border:2px solid var(--muted);}
+  .pin-dot.on{background:var(--gold);border-color:var(--gold);}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:300px;margin:0 auto;}
+  .keypad button{
+    font-size:26px;padding:18px;border:none;border-radius:16px;background:var(--panel2);
+    color:var(--txt);cursor:pointer;font-weight:700;
+  }
+  .keypad button:active{background:#2e3a5e;}
+
+  table{width:100%;border-collapse:collapse;margin-top:8px;}
+  th,td{text-align:left;padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.07);font-size:15px;}
+  th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;}
+  td .em{font-size:26px;}
+  .btn{
+    border:none;border-radius:12px;padding:10px 16px;font-size:14px;font-weight:700;
+    cursor:pointer;background:var(--panel2);color:var(--txt);
+  }
+  .btn.gold{background:var(--gold);color:#2a1e00;}
+  .btn.red{background:var(--red);color:#2a0000;}
+  .btn.green{background:var(--green);color:#052012;}
+  .btn.sm{padding:7px 11px;font-size:13px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px;}
+  .hint{color:var(--muted);font-size:13px;margin-top:6px;}
+  input.cfg{background:var(--panel2);border:1px solid rgba(255,255,255,.1);color:var(--txt);
+    border-radius:10px;padding:9px 12px;font-size:15px;width:80px;}
+  .sect{margin-top:26px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);}
+
+  /* petite explosion d'étoile */
+  @keyframes burst{0%{transform:scale(0);opacity:1}100%{transform:scale(2.4);opacity:0}}
+  .burst{position:fixed;font-size:60px;pointer-events:none;animation:burst .6s ease-out forwards;z-index:80;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back" id="backBtn">←</button>
+      <div>
+        <h1 id="title">🌟 Mes Missions</h1>
+        <div class="date" id="dateLbl"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span class="fri-badge" id="friBadge" style="display:none;">🎉 Jour des récompenses !</span>
+      <button class="gear" id="gearBtn">⚙️</button>
+    </div>
+  </div>
+  <div class="screen" id="screen"></div>
+</div>
+
+<!-- modale parents -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+"use strict";
+const KEY="familyTasks_v1";
+const A={green:"var(--green)"};
+
+/* ---------- données par défaut ---------- */
+function seed(){
+  return {
+    config:{ minutesPerPoint:0.5, capMinutes:120, parentPin:"1234", weekStartsSunday:true },
+    kids:[
+      {id:"k1", name:"3 ans", emoji:"🐰", color:"#f472b6", tasks:[
+        {id:"t1",emoji:"🪥",label:"Brosser les dents",points:5,done:[]},
+        {id:"t2",emoji:"🧸",label:"Ranger les jouets",points:5,done:[]},
+        {id:"t3",emoji:"👕",label:"S'habiller seule",points:5,done:[]},
+        {id:"t4",emoji:"🍽️",label:"Débarrasser mon assiette",points:5,done:[]},
+      ]},
+      {id:"k2", name:"6 ans", emoji:"🦄", color:"#a78bfa", tasks:[
+        {id:"t1",emoji:"🪥",label:"Brosser les dents",points:5,done:[]},
+        {id:"t2",emoji:"🛏️",label:"Faire le lit",points:10,done:[]},
+        {id:"t3",emoji:"🎒",label:"Préparer le cartable",points:10,done:[]},
+        {id:"t4",emoji:"🧺",label:"Linge sale au panier",points:5,done:[]},
+        {id:"t5",emoji:"🍽️",label:"Mettre la table",points:10,done:[]},
+      ]},
+      {id:"k3", name:"8 ans", emoji:"🦁", color:"#fb923c", tasks:[
+        {id:"t1",emoji:"🪥",label:"Brosser les dents",points:5,done:[]},
+        {id:"t2",emoji:"🛏️",label:"Faire le lit",points:10,done:[]},
+        {id:"t3",emoji:"📚",label:"Faire les devoirs",points:20,done:[]},
+        {id:"t4",emoji:"🗑️",label:"Sortir la poubelle",points:10,done:[]},
+        {id:"t5",emoji:"🍽️",label:"Débarrasser la table",points:10,done:[]},
+      ]},
+      {id:"k4", name:"10 ans", emoji:"🦊", color:"#38bdf8", tasks:[
+        {id:"t1",emoji:"🪥",label:"Brosser les dents",points:5,done:[]},
+        {id:"t2",emoji:"🛏️",label:"Faire le lit",points:10,done:[]},
+        {id:"t3",emoji:"📚",label:"Faire les devoirs",points:20,done:[]},
+        {id:"t4",emoji:"🍳",label:"Aider à la cuisine",points:15,done:[]},
+        {id:"t5",emoji:"📖",label:"Lecture 20 min",points:15,done:[]},
+        {id:"t6",emoji:"🗑️",label:"Sortir la poubelle",points:10,done:[]},
+      ]},
+    ]
+  };
+}
+function load(){ try{const r=localStorage.getItem(KEY); return r?JSON.parse(r):seed();}catch(e){return seed();} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
+let DB = load();
+if(!localStorage.getItem(KEY)) save();  // persiste les valeurs par défaut au 1er lancement
+
+/* ---------- dates ---------- */
+function todayStr(d){ d=d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function weekStart(){
+  const d=new Date(); d.setHours(0,0,0,0);
+  const day=d.getDay(); // 0=dim
+  const back = DB.config.weekStartsSunday ? day : (day===0?6:day-1);
+  d.setDate(d.getDate()-back); return d;
+}
+function inThisWeek(ds){
+  const ws=weekStart(); const we=new Date(ws); we.setDate(we.getDate()+7);
+  const dd=new Date(ds+"T00:00:00"); return dd>=ws && dd<we;
+}
+function isFriday(){ return new Date().getDay()===5; }
+
+/* ---------- calculs ---------- */
+function weeklyPts(k){ let s=0; k.tasks.forEach(t=>{ s += t.points * t.done.filter(inThisWeek).length; }); return s; }
+function todayPts(k){ const td=todayStr(); let s=0; k.tasks.forEach(t=>{ if(t.done.includes(td)) s+=t.points; }); return s; }
+function minutes(k){ return Math.min(Math.round(weeklyPts(k)*DB.config.minutesPerPoint), DB.config.capMinutes); }
+function doneToday(t){ return t.done.includes(todayStr()); }
+
+/* ---------- navigation ---------- */
+let view={name:"home", kid:null};
+const screen=document.getElementById("screen");
+const backBtn=document.getElementById("backBtn");
+const title=document.getElementById("title");
+
+function fmtDate(){
+  const d=new Date();
+  return d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+}
+document.getElementById("dateLbl").textContent = fmtDate().charAt(0).toUpperCase()+fmtDate().slice(1);
+document.getElementById("friBadge").style.display = isFriday()?"inline-block":"none";
+
+function render(){
+  if(view.name==="home") renderHome();
+  else renderKid();
+}
+
+function renderHome(){
+  backBtn.style.display="none";
+  title.textContent="🌟 Mes Missions";
+  const cap=DB.config.capMinutes;
+  let html='<div class="kids-grid">';
+  DB.kids.forEach(k=>{
+    const wp=weeklyPts(k), mn=minutes(k);
+    const pct=Math.min(100, Math.round(mn/cap*100));
+    html+=`<div class="kid-card" data-k="${k.id}">
+      <div class="glow" style="background:radial-gradient(circle at 20% 20%, ${k.color}, transparent 70%)"></div>
+      <div class="kid-emoji">${k.emoji}</div>
+      <div class="kid-info">
+        <div class="kid-name">${esc(k.name)}</div>
+        <div class="kid-sub">${k.tasks.filter(doneToday).length}/${k.tasks.length} missions faites aujourd'hui</div>
+        <div class="kid-stats">
+          <div class="stat"><b style="color:var(--gold)">${wp}</b><span>⭐ points</span></div>
+          <div class="stat"><b style="color:#7fd4ff">${mn}</b><span>min vendredi</span></div>
+        </div>
+        <div class="progress"><i style="width:${pct}%"></i></div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  screen.innerHTML=html;
+  screen.querySelectorAll(".kid-card").forEach(c=>c.onclick=()=>{ view={name:"kid",kid:c.dataset.k}; render(); });
+}
+
+function renderKid(){
+  const k=DB.kids.find(x=>x.id===view.kid);
+  backBtn.style.display="flex";
+  title.textContent=`${k.emoji} ${k.name}`;
+  let html=`<div class="kid-header">
+    <div class="kid-emoji">${k.emoji}</div>
+    <div class="hname">${esc(k.name)}</div>
+    <div class="hstats">
+      <div class="pill"><b>${weeklyPts(k)}</b><span>⭐ cette semaine</span></div>
+      <div class="pill mins"><b>${minutes(k)}</b><span>min d'écran vendredi</span></div>
+    </div>
+  </div><div class="tasks-grid">`;
+  k.tasks.forEach(t=>{
+    html+=`<div class="task ${doneToday(t)?"done":""}" data-t="${t.id}">
+      <div class="check">✓</div>
+      <div class="t-emoji">${t.emoji}</div>
+      <div class="t-label">${esc(t.label)}</div>
+      <div class="t-pts">+${t.points} ⭐</div>
+    </div>`;
+  });
+  html+='</div>';
+  screen.innerHTML=html;
+  screen.querySelectorAll(".task").forEach(el=>el.onclick=(e)=>toggle(k,el.dataset.t,e));
+}
+
+function toggle(k,tid,e){
+  const t=k.tasks.find(x=>x.id===tid); const td=todayStr();
+  const i=t.done.indexOf(td);
+  if(i>=0){ t.done.splice(i,1); }
+  else{ t.done.push(td); burst(e.clientX,e.clientY); }
+  save(); renderKid();
+}
+function burst(x,y){
+  const s=document.createElement("div"); s.className="burst"; s.textContent="⭐";
+  s.style.left=(x-30)+"px"; s.style.top=(y-30)+"px"; document.body.appendChild(s);
+  setTimeout(()=>s.remove(),600);
+}
+
+backBtn.onclick=()=>{ view={name:"home",kid:null}; render(); };
+
+/* ---------- espace parents ---------- */
+const modalBg=document.getElementById("modalBg"), modal=document.getElementById("modal");
+let pinBuf="";
+document.getElementById("gearBtn").onclick=openPin;
+modalBg.onclick=(e)=>{ if(e.target===modalBg) closeModal(); };
+function closeModal(){ modalBg.classList.remove("open"); pinBuf=""; }
+
+function openPin(){
+  pinBuf="";
+  modalBg.classList.add("open");
+  modal.innerHTML=`<h2>🔒 Espace parents</h2>
+    <p class="hint" style="text-align:center">Entre le code (par défaut 1234)</p>
+    <div class="pin-row" id="pinRow"></div>
+    <div class="keypad" id="keypad"></div>`;
+  drawPin();
+  const kp=document.getElementById("keypad");
+  ["1","2","3","4","5","6","7","8","9","⌫","0","OK"].forEach(v=>{
+    const b=document.createElement("button"); b.textContent=v;
+    b.onclick=()=>pinPress(v); kp.appendChild(b);
+  });
+}
+function drawPin(){
+  const r=document.getElementById("pinRow"); r.innerHTML="";
+  for(let i=0;i<4;i++){ const d=document.createElement("div"); d.className="pin-dot"+(i<pinBuf.length?" on":""); r.appendChild(d); }
+}
+function pinPress(v){
+  if(v==="⌫") pinBuf=pinBuf.slice(0,-1);
+  else if(v==="OK"){ checkPin(); return; }
+  else if(pinBuf.length<4) pinBuf+=v;
+  drawPin();
+  if(pinBuf.length===4) checkPin();
+}
+function checkPin(){
+  if(pinBuf===DB.config.parentPin) renderParent();
+  else { pinBuf=""; drawPin(); const r=document.getElementById("pinRow"); if(r){r.style.animation="none";r.offsetHeight;r.style.animation="";} }
+}
+
+function renderParent(){
+  let rows="";
+  DB.kids.forEach(k=>{
+    rows+=`<tr>
+      <td><span class="em">${k.emoji}</span> ${esc(k.name)}</td>
+      <td><b style="color:var(--gold)">${weeklyPts(k)}</b> ⭐</td>
+      <td><b style="color:#7fd4ff">${minutes(k)}</b> min</td>
+      <td>${k.tasks.length} missions</td>
+      <td>
+        <button class="btn sm" data-edit="${k.id}">✏️ Éditer</button>
+        <button class="btn sm red" data-reset="${k.id}">↺ Semaine</button>
+      </td>
+    </tr>`;
+  });
+  modal.innerHTML=`<h2>⚙️ Tableau de bord parents</h2>
+    <table><thead><tr><th>Enfant</th><th>Points sem.</th><th>Écran vendredi</th><th>Missions</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="row">
+      <button class="btn red" id="resetAll">↺ Réinitialiser toute la semaine</button>
+      <button class="btn" id="closeP">Fermer</button>
+    </div>
+    <div class="sect">
+      <h2 style="font-size:18px">🎚️ Réglages récompense</h2>
+      <div class="row">
+        <label>Minutes d'écran par point&nbsp; <input class="cfg" id="mpp" type="number" step="0.1" value="${DB.config.minutesPerPoint}"></label>
+        <label>Plafond (min)&nbsp; <input class="cfg" id="cap" type="number" value="${DB.config.capMinutes}"></label>
+        <label>Code parents&nbsp; <input class="cfg" id="pin" value="${DB.config.parentPin}" style="width:90px"></label>
+        <button class="btn green" id="saveCfg">Enregistrer</button>
+      </div>
+      <div class="hint">Exemple : 0,5 min/point + plafond 120 → une grosse semaine = ~2h d'écran le vendredi.</div>
+    </div>`;
+  modal.querySelector("#closeP").onclick=closeModal;
+  modal.querySelector("#resetAll").onclick=()=>{ if(confirm("Remettre tous les compteurs de la semaine à zéro ?")){ DB.kids.forEach(k=>k.tasks.forEach(t=>t.done=t.done.filter(d=>!inThisWeek(d)))); save(); renderParent(); render(); } };
+  modal.querySelectorAll("[data-reset]").forEach(b=>b.onclick=()=>{ const k=DB.kids.find(x=>x.id===b.dataset.reset); if(confirm("Réinitialiser la semaine de "+k.name+" ?")){ k.tasks.forEach(t=>t.done=t.done.filter(d=>!inThisWeek(d))); save(); renderParent(); render(); } });
+  modal.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editKid(b.dataset.edit));
+  modal.querySelector("#saveCfg").onclick=()=>{
+    DB.config.minutesPerPoint=parseFloat(document.getElementById("mpp").value)||0.5;
+    DB.config.capMinutes=parseInt(document.getElementById("cap").value)||120;
+    DB.config.parentPin=(document.getElementById("pin").value||"1234").slice(0,4);
+    save(); renderParent(); render();
+  };
+}
+
+function editKid(kid){
+  const k=DB.kids.find(x=>x.id===kid);
+  let tr="";
+  k.tasks.forEach(t=>{
+    tr+=`<tr>
+      <td><input class="cfg" style="width:60px" data-em="${t.id}" value="${t.emoji}"></td>
+      <td><input class="cfg" style="width:220px" data-lb="${t.id}" value="${esc(t.label)}"></td>
+      <td><input class="cfg" style="width:70px" type="number" data-pt="${t.id}" value="${t.points}"></td>
+      <td><button class="btn sm red" data-del="${t.id}">✕</button></td>
+    </tr>`;
+  });
+  modal.innerHTML=`<h2>✏️ ${k.emoji} ${esc(k.name)}</h2>
+    <div class="row">
+      <label>Prénom&nbsp; <input class="cfg" id="kn" style="width:180px" value="${esc(k.name)}"></label>
+      <label>Emoji&nbsp; <input class="cfg" id="ke" style="width:70px" value="${k.emoji}"></label>
+    </div>
+    <div class="sect"><h2 style="font-size:18px">Missions</h2>
+      <table><thead><tr><th>Icône</th><th>Mission</th><th>Points</th><th></th></tr></thead><tbody id="tb">${tr}</tbody></table>
+      <div class="row"><button class="btn green" id="addT">＋ Ajouter une mission</button></div>
+    </div>
+    <div class="row">
+      <button class="btn gold" id="saveK">Enregistrer</button>
+      <button class="btn" id="backP">← Retour</button>
+    </div>`;
+  modal.querySelector("#backP").onclick=renderParent;
+  modal.querySelector("#addT").onclick=()=>{ k.tasks.push({id:"t"+Date.now(),emoji:"⭐",label:"Nouvelle mission",points:5,done:[]}); save(); editKid(kid); };
+  modal.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ k.tasks=k.tasks.filter(t=>t.id!==b.dataset.del); save(); editKid(kid); });
+  modal.querySelector("#saveK").onclick=()=>{
+    k.name=document.getElementById("kn").value||k.name;
+    k.emoji=document.getElementById("ke").value||k.emoji;
+    k.tasks.forEach(t=>{
+      const em=modal.querySelector(`[data-em="${t.id}"]`), lb=modal.querySelector(`[data-lb="${t.id}"]`), pt=modal.querySelector(`[data-pt="${t.id}"]`);
+      if(em)t.emoji=em.value; if(lb)t.label=lb.value; if(pt)t.points=parseInt(pt.value)||0;
+    });
+    save(); renderParent(); render();
+  };
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+render();
+</script>
+</body>
+</html>
