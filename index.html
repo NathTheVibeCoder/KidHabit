@@ -366,7 +366,7 @@ function renderParent(){
       <td><b style="color:#7fd4ff">${minutes(k)}</b> דק'</td>
       <td>${k.tasks.length} משימות</td>
       <td>
-        <button class="btn sm" data-edit="${k.id}">✏️ עריכה</button>
+        <button class="btn sm green" data-edit="${k.id}">+ הוסף / ערוך משימות</button>
         <button class="btn sm red" data-reset="${k.id}">↺ שבוע</button>
       </td>
     </tr>`;
@@ -417,8 +417,8 @@ function editKid(kid){
       <label>אימוג'י&nbsp; <input class="cfg" id="ke" style="width:70px" value="${k.emoji}"></label>
     </div>
     <div class="sect"><h2 style="font-size:18px">משימות</h2>
+      <div class="row" style="margin-top:4px;margin-bottom:14px"><button class="btn green" id="addT" style="font-size:16px;padding:12px 20px">+ הוספת משימה</button></div>
       <table><thead><tr><th>אייקון</th><th>משימה</th><th>נקודות</th><th></th></tr></thead><tbody id="tb">${tr}</tbody></table>
-      <div class="row"><button class="btn green" id="addT">+ הוספת משימה</button></div>
     </div>
     <div class="row">
       <button class="btn gold" id="saveK">שמירה</button>
