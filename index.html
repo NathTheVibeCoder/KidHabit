@@ -31,10 +31,12 @@
   .back{
     font-size:26px;background:var(--panel2);border:none;color:var(--txt);
     width:56px;height:56px;border-radius:16px;cursor:pointer;display:none;
+    align-items:center;justify-content:center;line-height:1;padding:0;
   }
   .gear{
     font-size:26px;background:var(--panel2);border:none;color:var(--txt);
     width:56px;height:56px;border-radius:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;line-height:1;padding:0;
   }
   .fri-badge{
     background:linear-gradient(90deg,#ffb43c,#ff7b7b);color:#2a1500;font-weight:800;
@@ -142,6 +144,22 @@
 
   @keyframes burst{0%{transform:scale(0);opacity:1}100%{transform:scale(2.4);opacity:0}}
   .burst{position:fixed;font-size:60px;pointer-events:none;animation:burst .6s ease-out forwards;z-index:80;}
+
+  /* mini-clavier emoji */
+  input[data-em]{cursor:pointer;text-align:center;font-size:22px;}
+  .emoji-pop{
+    position:fixed;z-index:70;display:none;
+    grid-template-columns:repeat(8,1fr);gap:4px;
+    background:var(--panel2);border:1px solid rgba(255,255,255,.14);
+    border-radius:14px;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.55);
+    width:308px;max-height:220px;overflow-y:auto;
+  }
+  .emoji-pop.open{display:grid;}
+  .emoji-pop button{
+    font-size:23px;background:none;border:none;cursor:pointer;
+    padding:5px;border-radius:8px;line-height:1;
+  }
+  .emoji-pop button:hover{background:rgba(255,255,255,.12);}
 </style>
 </head>
 <body>
@@ -165,6 +183,8 @@
 <div class="modal-bg" id="modalBg">
   <div class="modal" id="modal"></div>
 </div>
+
+<div class="emoji-pop" id="emojiPop"></div>
 
 <script>
 "use strict";
@@ -439,6 +459,30 @@ function editKid(kid){
 }
 
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------- mini-clavier emoji ---------- */
+const EMOJIS=["🪥","🦷","🚿","🛁","🧼","🧴","🚽","👕","👖","🧦","👟","🧥","🎽","🛏️","🧹","🧺","🧻","🗑️","🧽","🪣","🍽️","🍴","🥣","🥛","🍞","🧃","🍎","🥗","🍳","🥪","🍚","📚","📖","✏️","📝","🎒","🧮","🎨","🎵","🎹","🐕","🐈","🐟","🌱","🪴","💧","⚽","🏀","🚲","🧩","🪀","🎲","⏰","📅","🙏","🕯️","🕎","⭐","🌟","❤️","👍","😀","🎉","🏆","🎯","✅","🧸","💊"];
+const emojiPop=document.getElementById("emojiPop");
+let activeEmojiInput=null;
+EMOJIS.forEach(e=>{ const b=document.createElement("button"); b.type="button"; b.textContent=e;
+  b.onmousedown=(ev)=>{ ev.preventDefault(); if(activeEmojiInput) activeEmojiInput.value=e; hideEmojiPop(); };
+  emojiPop.appendChild(b);
+});
+function showEmojiPop(input){
+  activeEmojiInput=input;
+  const r=input.getBoundingClientRect();
+  let left=r.left; if(left+308>window.innerWidth-8) left=window.innerWidth-316;
+  emojiPop.style.left=Math.max(8,left)+"px";
+  let top=r.bottom+6; if(top+220>window.innerHeight-8) top=r.top-226;
+  emojiPop.style.top=Math.max(8,top)+"px";
+  emojiPop.classList.add("open");
+}
+function hideEmojiPop(){ emojiPop.classList.remove("open"); activeEmojiInput=null; }
+document.addEventListener("click",(e)=>{
+  const inp=e.target.closest ? e.target.closest("input[data-em]") : null;
+  if(inp){ showEmojiPop(inp); }
+  else if(!(e.target.closest && e.target.closest("#emojiPop"))){ if(emojiPop.classList.contains("open")) hideEmojiPop(); }
+});
 
 render();
 </script>
