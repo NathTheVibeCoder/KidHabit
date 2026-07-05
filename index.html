@@ -97,6 +97,9 @@
   .task.done .check{display:flex;}
 
   .empty{color:var(--muted);text-align:center;margin-top:60px;font-size:18px;}
+  .add-task{border:3px dashed rgba(255,255,255,.20);background:rgba(255,255,255,.02);}
+  .add-task .t-emoji{font-size:56px;color:var(--green);font-weight:800;}
+  .add-task .t-label{color:var(--muted);}
 
   /* ---- חלון הורים ---- */
   .modal-bg{
@@ -287,9 +290,15 @@ function renderKid(){
       <div class="t-pts">+${t.points} ⭐</div>
     </div>`;
   });
+  html+=`<div class="task add-task" data-add="1">
+      <div class="t-emoji">+</div>
+      <div class="t-label">הוספת משימה</div>
+    </div>`;
   html+='</div>';
   screen.innerHTML=html;
-  screen.querySelectorAll(".task").forEach(el=>el.onclick=(e)=>toggle(k,el.dataset.t,e));
+  screen.querySelectorAll(".task[data-t]").forEach(el=>el.onclick=(e)=>toggle(k,el.dataset.t,e));
+  const addEl=screen.querySelector(".add-task");
+  if(addEl) addEl.onclick=()=>parentGate(()=>editKid(k.id));
 }
 
 function toggle(k,tid,e){
@@ -309,8 +318,12 @@ backBtn.onclick=()=>{ view={name:"home",kid:null}; render(); };
 
 /* ---------- אזור הורים ---------- */
 const modalBg=document.getElementById("modalBg"), modal=document.getElementById("modal");
-let pinBuf="";
-document.getElementById("gearBtn").onclick=openPin;
+let pinBuf="", parentUnlocked=false, pendingAfterPin=null;
+document.getElementById("gearBtn").onclick=()=>parentGate(renderParent);
+function parentGate(cb){
+  if(parentUnlocked){ modalBg.classList.add("open"); cb(); }
+  else { pendingAfterPin=cb; openPin(); }
+}
 modalBg.onclick=(e)=>{ if(e.target===modalBg) closeModal(); };
 function closeModal(){ modalBg.classList.remove("open"); pinBuf=""; }
 
@@ -340,7 +353,7 @@ function pinPress(v){
   if(pinBuf.length===4) checkPin();
 }
 function checkPin(){
-  if(pinBuf===DB.config.parentPin) renderParent();
+  if(pinBuf===DB.config.parentPin){ parentUnlocked=true; const cb=pendingAfterPin||renderParent; pendingAfterPin=null; cb(); }
   else { pinBuf=""; drawPin(); }
 }
 
